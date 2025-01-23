@@ -27,17 +27,6 @@ def _(mo):
 
 
 @app.cell
-def _(mo, pd):
-    url = 'https://raw.githubusercontent.com/antoinebugeia/bdloc-cleaning/refs/heads/main/BDLOC_6626732514566488014.csv'
-
-    # df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
-    df = pd.read_csv(url, lineterminator="\n", skip_blank_lines=True)
-    mo.ui.dataframe(df)
-
-    return df, url
-
-
-@app.cell
 def _(mo):
     mo.md(
         r"""
@@ -53,8 +42,36 @@ def _(mo):
 
 
 @app.cell
+def _(mo, pd):
+    url = 'https://raw.githubusercontent.com/antoinebugeia/bdloc-cleaning/refs/heads/main/BDLOC_6626732514566488014.csv'
+
+    # df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
+    df = pd.read_csv(url, lineterminator="\n", skip_blank_lines=True)
+    mo.ui.dataframe(df)
+
+    return df, url
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        Test de l'affichage d'une ligne ayant un problème de structure dans le csv avec des paramètres spécifiques : (lineterminator="\n", skip_blank_lines=True)  
+        Ca fonctionne.
+        """
+    )
+    return
+
+
+@app.cell
 def _(df):
     df[df['OBJECTID'] == 19970] # le load fonctionne
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""Obervation du nombre d'individus et du nbde colonnes :""")
     return
 
 
@@ -66,14 +83,14 @@ def _(df):
 
 
 @app.cell
-def _(df_filtered):
-    df_filtered[df_filtered.duplicated()]
+def _(mo):
+    mo.md(r"""Recherche des doublons : il n'y en a pas.""")
     return
 
 
 @app.cell
-def _(mo):
-    mo.md(r"""Il n'y a pas de doublon.""")
+def _(df_filtered):
+    df_filtered[df_filtered.duplicated()]
     return
 
 
@@ -99,11 +116,13 @@ def _(mo):
 
 
 @app.cell
-def _(cat_col_to_unique, df_filtered):
+def _(cat_col_to_unique, df_filtered, mo):
+
+
     for _col in cat_col_to_unique:
         if df_filtered[_col].nunique() < 500:
-            print("Nom de la colonne : " + _col)
-            print(df_filtered[_col].unique())
+            mo.output.append("Nom de la colonne : " + _col)
+            mo.output.append(df_filtered[_col].unique())
     return
 
 
@@ -112,12 +131,6 @@ def _(cat_col_to_unique, df_filtered):
     for _col in cat_col_to_unique:
         if df_filtered[_col].nunique() >= 500:
             print(_col)
-    return
-
-
-@app.cell
-def _(df_filtered):
-    df_filtered[df_filtered['DIFFUSION'] == 'NON']
     return
 
 
@@ -134,10 +147,27 @@ def _(mo):
 
 @app.cell
 def _(df_filtered):
-    # Etude des 2 colonnes qui concernent le libellé.
+    df_filtered[df_filtered['DIFFUSION'] == 'NON']
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Etude des 2 colonnes qui concernent le libellé.""")
+    return
+
+
+@app.cell
+def _(df_filtered):
     cols_to_analyse = ['LIBELLE', 'LIBEL_ABR']
     df_filtered[cols_to_analyse]
     return (cols_to_analyse,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Beaucoup de LIBEL_ABR sont identiques aux LIBELLE :""")
+    return
 
 
 @app.cell
@@ -149,7 +179,12 @@ def _(cols_to_analyse, df_filtered):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Beaucoup de LIBEL_ABR sont identiques aux LIBELLE""")
+    mo.md(
+        r"""
+        On effectue ici une recherche auto des abbréviations utilisées dans la colonne LIBELLE.  
+        Il peut y en avoir d'autres, par exemple BCI (et non B.C.I.) mais elles ne peuvent pas être cherchées de façon auto car énormément des mots sont également intégrallement en majuscules.
+        """
+    )
     return
 
 
@@ -171,19 +206,14 @@ def _(df_filtered):
 
 
 @app.cell
-def _(df_filtered):
-    df_filtered['abbreviations'].unique()
+def _(mo):
+    mo.md(r"""Elements uniques de la recherche :""")
     return
 
 
 @app.cell
-def _(mo):
-    mo.md(
-        r"""
-        On note ici une recherche auto des abbréviations utilisées dans la colonne LIBELLE.  
-        Il peut y en avoir d'autres, par exemple BCI (et non B.C.I.) mais elles ne peuvent pas être cherchées de façon auto car énormément des mots sont également intégrallement en majuscules.
-        """
-    )
+def _(df_filtered):
+    df_filtered['abbreviations'].unique()
     return
 
 
