@@ -4,7 +4,7 @@ name: "Publish Notebook on page"
 on:
   push:
     paths:
-      - '*.py'
+      - 'main_nb.py'
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
       - name: 📄 Export notebook
         run: |
           mkdir -p ./output
-          marimo export html-wasm notebook.py -o ./output --mode run
+          marimo export html-wasm main_nb.py -o ./output --mode run
 
       - name: 📦 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3

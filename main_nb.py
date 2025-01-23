@@ -11,6 +11,7 @@ def _():
     return mo, pd
 
 
+
 @app.cell
 def _(mo, pd):
     df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
