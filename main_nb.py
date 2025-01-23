@@ -9,9 +9,21 @@ def _():
     import marimo as mo
     import pandas as pd
     import requests
-
-
     return mo, pd, requests
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        ## Fichier CSV
+        A l'import quelques problèmes dans la structure du CSV :  
+        ![](https://github.com/antoinebugeia/bdloc-cleaning/blob/main/pb_csv.PNG?raw=true)
+
+        ![](https://github.com/antoinebugeia/bdloc-cleaning/blob/main/pb_csv2.PNG?raw=true)
+        """
+    )
+    return
 
 
 @app.cell
@@ -26,6 +38,21 @@ def _(mo, pd):
 
 
 @app.cell
+def _(mo):
+    mo.md(
+        r"""
+        ## Contenu
+
+        On voit très rapidemment que régulièrement la colonne 'LIBEL_ABR' ne contient plus l'information initiale sur le nom propre, ex :  
+        - 'Cimetière de Naniouni' dans 'LIBELLE' devient 'Cim.'  
+        - 'Station d'épuration James Cook' devient 'Epur.'
+
+        """
+    )
+    return
+
+
+@app.cell
 def _(df):
     df[df['OBJECTID'] == 19970] # le load fonctionne
     return
@@ -33,7 +60,7 @@ def _(df):
 
 @app.cell
 def _(df):
-    df_filtered = df[(df['SOURCE'] != 'ATLAS') & (df['SOURCE'] != 'REFIL')].copy()
+    df_filtered = df[(df['SOURCE'] != 'ATLAS') & (df['SOURCE'] != 'REFIL')].copy() # on ne s'occupe pas de ces 2 sources
     df_filtered.shape
     return (df_filtered,)
 
@@ -41,6 +68,12 @@ def _(df):
 @app.cell
 def _(df_filtered):
     df_filtered[df_filtered.duplicated()]
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Il n'y a pas de doublon.""")
     return
 
 
@@ -60,10 +93,16 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md("""## Contenus uniques""")
+    return
+
+
+@app.cell
 def _(cat_col_to_unique, df_filtered):
     for _col in cat_col_to_unique:
         if df_filtered[_col].nunique() < 500:
-            print(_col)
+            print("Nom de la colonne : " + _col)
             print(df_filtered[_col].unique())
     return
 
@@ -83,10 +122,35 @@ def _(df_filtered):
 
 
 @app.cell
+def _(mo):
+    mo.md(
+        r"""
+        Certaines lignes sont marqués 'NON' dans la colonne 'DIFFUSION'.  
+        La catégorie des stations services est d'ailleurs étonnante.
+        """
+    )
+    return
+
+
+@app.cell
 def _(df_filtered):
+    # Etude des 2 colonnes qui concernent le libellé.
     cols_to_analyse = ['LIBELLE', 'LIBEL_ABR']
     df_filtered[cols_to_analyse]
     return (cols_to_analyse,)
+
+
+@app.cell
+def _(cols_to_analyse, df_filtered):
+    df_filtered[df_filtered['LIBELLE'] == df_filtered['LIBEL_ABR']][cols_to_analyse].shape
+
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Beaucoup de LIBEL_ABR sont identiques aux LIBELLE""")
+    return
 
 
 @app.cell
@@ -109,6 +173,17 @@ def _(df_filtered):
 @app.cell
 def _(df_filtered):
     df_filtered['abbreviations'].unique()
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        On note ici une recherche auto des abbréviations utilisées dans la colonne LIBELLE.  
+        Il peut y en avoir d'autres, par exemple BCI (et non B.C.I.) mais elles ne peuvent pas être cherchées de façon auto car énormément des mots sont également intégrallement en majuscules.
+        """
+    )
     return
 
 
