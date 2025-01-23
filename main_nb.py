@@ -12,15 +12,15 @@ def _():
 
 
 @app.cell
-def _(pd):
+def _(mo, pd):
     df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
-    df
+    mo.ui.dataframe(df)
     return (df,)
 
 
 @app.cell
 def _(df):
-    df[df['OBJECTID'] == 19970]
+    df[df['OBJECTID'] == 19970] # le load fonctionne
     return
 
 
@@ -53,25 +53,68 @@ def _(df2):
 
 
 @app.cell
-def _(cat_col, df2):
-    for col in cat_col:
-        if df2[col].nunique() < 1000:
-            print(col)
-            print(df2[col].unique())
-    return (col,)
+def _():
+    cat_col_to_unique = ['LIBELLE', 'LIBEL_ABR', 'TYPE', 'CATEGORIE', 'SOURCE', 'ORIGINE', 'PROVINCE']
+    return (cat_col_to_unique,)
 
 
 @app.cell
-def _(df, re):
-    def detect_abbreviations(label):
-        # Motif pour repérer les abréviations (exemple : majuscules et/ou points)
-        pattern = r'\b(?:[A-Z]{2,}|(?:[A-Z]\.){2,})\b'
-        return re.findall(pattern, label)
+def _(cat_col_to_unique, df2):
+    for _col in cat_col_to_unique:
+        if df2[_col].nunique() < 500:
+            print(_col)
+            print(df2[_col].unique())
+    return
 
-    # Appliquer la détection sur la colonne 'label'
-    df['abbreviations'] = df['label'].apply(lambda x: detect_abbreviations(x) if isinstance(x, str) else [])
 
-    return (detect_abbreviations,)
+@app.cell
+def _(cat_col_to_unique, df2):
+    for _col in cat_col_to_unique:
+        if df2[_col].nunique() >= 500:
+            print(_col)
+    return
+
+
+@app.cell
+def _(df2):
+    df2[df2['DIFFUSION'] == 'NON']
+    return
+
+
+@app.cell
+def _(df2):
+
+    cols_to_analyse = ['LIBELLE', 'LIBEL_ABR']
+    df2[cols_to_analyse]
+
+    return (cols_to_analyse,)
+
+
+@app.cell
+def _(df2):
+    import re
+
+    pattern = r'\b[A-Z]{2,}(?:\.[A-Z]{2,})?|\b(?:[A-Z]\.){2,}|\b[A-Za-z]{1,4}\.\b'
+
+
+    # Fonction pour détecter les abréviations et acronymes
+    def detect_abbreviations(_df, _column, _pattern):
+        return _df[_column].apply(lambda x: re.findall(_pattern, x) if isinstance(x, str) else [])
+
+    # Appliquer sur une colonne spécifique
+    df2['abbreviations'] = detect_abbreviations(df2, 'LIBELLE', pattern)
+    df2[df2['abbreviations'] != '[]']
+    return detect_abbreviations, pattern, re
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _():
+    return
 
 
 if __name__ == "__main__":
