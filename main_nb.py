@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.14"
+__generated_with = "0.10.16"
 app = marimo.App(width="medium")
 
 
@@ -8,15 +8,21 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import pandas as pd
-    return mo, pd
+    import requests
 
+
+    return mo, pd, requests
 
 
 @app.cell
 def _(mo, pd):
-    df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
+    url = 'https://raw.githubusercontent.com/antoinebugeia/bdloc-cleaning/refs/heads/main/BDLOC_6626732514566488014.csv'
+
+    # df = pd.read_csv('BDLOC_6626732514566488014.csv', sep=',', lineterminator="\n", skip_blank_lines=True)
+    df = pd.read_csv(url, lineterminator="\n", skip_blank_lines=True)
     mo.ui.dataframe(df)
-    return (df,)
+
+    return df, url
 
 
 @app.cell
@@ -27,28 +33,22 @@ def _(df):
 
 @app.cell
 def _(df):
-    df2 = df[(df['SOURCE'] != 'ATLAS') & (df['SOURCE'] != 'REFIL')]
-    df2.shape
-    return (df2,)
+    df_filtered = df[(df['SOURCE'] != 'ATLAS') & (df['SOURCE'] != 'REFIL')].copy()
+    df_filtered.shape
+    return (df_filtered,)
 
 
 @app.cell
-def _(df2):
-    df2[df2.duplicated()]
+def _(df_filtered):
+    df_filtered[df_filtered.duplicated()]
     return
 
 
 @app.cell
-def _(df2):
-    df2.info()
-    return
-
-
-@app.cell
-def _(df2):
-    cat_col = [col for col in df2.columns if df2[col].dtype == 'object']
+def _(df_filtered):
+    cat_col = [col for col in df_filtered.columns if df_filtered[col].dtype == 'object']
     print('Categorical columns :',cat_col)
-    num_col = [col for col in df2.columns if df2[col].dtype != 'object']
+    num_col = [col for col in df_filtered.columns if df_filtered[col].dtype != 'object']
     print('Numerical columns :',num_col)
     return cat_col, num_col
 
@@ -60,56 +60,55 @@ def _():
 
 
 @app.cell
-def _(cat_col_to_unique, df2):
+def _(cat_col_to_unique, df_filtered):
     for _col in cat_col_to_unique:
-        if df2[_col].nunique() < 500:
+        if df_filtered[_col].nunique() < 500:
             print(_col)
-            print(df2[_col].unique())
+            print(df_filtered[_col].unique())
     return
 
 
 @app.cell
-def _(cat_col_to_unique, df2):
+def _(cat_col_to_unique, df_filtered):
     for _col in cat_col_to_unique:
-        if df2[_col].nunique() >= 500:
+        if df_filtered[_col].nunique() >= 500:
             print(_col)
     return
 
 
 @app.cell
-def _(df2):
-    df2[df2['DIFFUSION'] == 'NON']
+def _(df_filtered):
+    df_filtered[df_filtered['DIFFUSION'] == 'NON']
     return
 
 
 @app.cell
-def _(df2):
-
+def _(df_filtered):
     cols_to_analyse = ['LIBELLE', 'LIBEL_ABR']
-    df2[cols_to_analyse]
-
+    df_filtered[cols_to_analyse]
     return (cols_to_analyse,)
 
 
 @app.cell
-def _(df2):
+def _(df_filtered):
     import re
 
-    pattern = r'\b[A-Z]{2,}(?:\.[A-Z]{2,})?|\b(?:[A-Z]\.){2,}|\b[A-Za-z]{1,4}\.\b'
-
+    pattern = r'\b(?:[a-zA-Z]\.)+[a-zA-Z]*|\b[a-zA-Z]{2,}\.'
 
     # Fonction pour détecter les abréviations et acronymes
     def detect_abbreviations(_df, _column, _pattern):
-        return _df[_column].apply(lambda x: re.findall(_pattern, x) if isinstance(x, str) else [])
-
+        return _df[_column].apply(
+            lambda _x: tuple(sorted(set(re.findall(_pattern, _x)))) if isinstance(_x, str) else ()
+        )
     # Appliquer sur une colonne spécifique
-    df2['abbreviations'] = detect_abbreviations(df2, 'LIBELLE', pattern)
-    df2[df2['abbreviations'] != '[]']
+    df_filtered['abbreviations'] = detect_abbreviations(df_filtered, 'LIBELLE', pattern)
+    df_filtered[df_filtered['abbreviations'].apply(lambda x: len(x) > 0)][['LIBELLE', 'abbreviations']].groupby('abbreviations').first().reset_index()
     return detect_abbreviations, pattern, re
 
 
 @app.cell
-def _():
+def _(df_filtered):
+    df_filtered['abbreviations'].unique()
     return
 
 
